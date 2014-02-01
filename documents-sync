@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# initialize configuration folder when it is not existing
+configFolder="${XDG_CONFIG_HOME:-$HOME/.config}/documents-sync"
+if [[ ! -d "$configFolder" ]]; then
+	mkdir -p "$configFolder"
+fi
+
+# exclude
+if [[ ! -e "$configFolder/documents-sync.exclude" ]]; then
+	touch "$configFolder/documents-sync.exclude"
+fi
+
+# config options
+LFOLDER=""
+RFOLDER=""
+DOCUMENTS="Documents"
+SSH=0
+
+# if exists load config file, see documents-sync.cfg.example
+if [[ -e "$configFolder/documents-sync.cfg" ]]; then
+	source "$configFolder/documents-sync.cfg"
+else
+	echo "provide a configfile please"
+	exit 255
+fi
+
+# checks for empty config vars
+[[ -z "$LFOLDER" ]] && echo "Local folder (LFOLDER) must be configured" && exit 255
+[[ -z "$RFOLDER" ]] && echo "Remote folder (RFOLDER) must be configured" && exit 255
+[[ -z "$DOCUMENTS" ]] && echo "Documents name (DOCUMENTS) must be configured" && exit 255
+if [[ $SSH -ne 1 ]]; then
+	SSH=0
+fi
+
+[[ -z "$1" ]] && echo "pass up/down direction of syncing" && exit 255
+
+case "$1" in
+'up')
+	folders="$LFOLDER/$DOCUMENTS $RFOLDER"
+	;;
+'down')
+	folders="$RFOLDER/$DOCUMENTS $LFOLDER"
+	;;
+*)
+	echo "only up/down direction is allowed" && exit 255
+	;;
+esac
+shift
+
+if [[ "$1" != "run" ]]; then
+	dry=' --dry-run'
+else
+	dry=''
+fi
+
+if [[ $SSH -eq 1 ]]; then
+	ssh=' -e ssh'
+else
+	ssh=''
+fi
+
+rsync \
+	$dry \
+	--archive \
+	--modify-window=10 \
+	--update \
+	--delete \
+	--omit-dir-times \
+	--no-owner \
+	--no-group \
+	--itemize-changes \
+	$ssh \
+	--exclude-from "$configFolder/documents-sync.exclude" \
+	$folders
