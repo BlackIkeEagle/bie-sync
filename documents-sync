@@ -9,20 +9,32 @@ if [[ ! -d "$configFolder" ]]; then
 fi
 
 function usage() {
+    local return=$1
+    if [[ -z $return ]]; then
+        return=0
+    fi
     echo "$appname - simply sync your documents"
     echo ""
-    echo "Usage: $appname [options]"
-    echo "       $appname --up --run"
-    echo "       $appname -u -r"
-    echo "       $appname --down"
-    echo "       $appname -d"
+    echo "Usage: $appname [options] profile"
+    echo "       $appname --up --run test"
+    echo "       $appname -u -r test"
+    echo "       $appname --down test"
+    echo "       $appname -d test"
+    echo "       $appname -l"
     echo "       $appname --help"
     echo ""
     echo "Options"
     echo " -u, --up    sync up"
     echo " -d, --down  sync down"
     echo " -r, --run   actually sync (if not given dry run is done)"
+    echo " -l, --list  show the profile configurations"
     echo " -h, --help  show this help"
+
+    exit $return
+}
+
+function  listProfiles() {
+    ls $configFolder/*.cfg | sed 's/.*\/\([a-z0-9_-]\+\)\.cfg/\1/g'
 
     exit 0
 }
@@ -42,23 +54,33 @@ while true; do
         -u | --up ) DIRECTION='up'; shift ;;
         -d | --down ) DIRECTION='down'; shift ;;
         -r | --run ) DRYRUN=0; shift ;;
+        -l | --list ) listProfiles; shift ;;
         -h | --help ) usage; shift ;;
         -- ) shift; break ;;
         * ) break ;;
     esac
 done
 
+PROFILE="$1"
+
+if [[ -z $PROFILE ]]; then
+    echo "error: you should pass a profile";
+    echo ""
+    usage 250
+fi
+
 # if exists load config file, see documents-sync.cfg.example
-if [[ -e "$configFolder/documents-sync.cfg" ]]; then
-	source "$configFolder/documents-sync.cfg"
+if [[ -e "$configFolder/$PROFILE.cfg" ]]; then
+	source "$configFolder/$PROFILE.cfg"
 else
-	echo "provide a configfile please"
-	exit 255
+	echo "error: the profile has no config file"
+    echo ""
+	usage 250
 fi
 
 # exclude
-if [[ ! -e "$configFolder/documents-sync.exclude" ]]; then
-	touch "$configFolder/documents-sync.exclude"
+if [[ ! -e "$configFolder/$PROFILE.exclude" ]]; then
+	touch "$configFolder/$PROFILE.exclude"
 fi
 
 # checks for empty config vars
@@ -98,7 +120,7 @@ else
 	ssh=''
 fi
 
-banner="$appname $DIRECTION"
+banner="$appname $PROFILE $DIRECTION"
 if [[ $DRYRUN -ne 0 ]]; then
     banner="$banner - !DRY RUN!"
 fi
@@ -116,5 +138,5 @@ rsync \
 	--no-group \
 	--itemize-changes \
 	$ssh \
-	--exclude-from "$configFolder/documents-sync.exclude" \
+	--exclude-from "$configFolder/$PROFILE.exclude" \
 	$folders
