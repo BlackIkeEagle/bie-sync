@@ -6,15 +6,47 @@ if [[ ! -d "$configFolder" ]]; then
 	mkdir -p "$configFolder"
 fi
 
-# exclude
-if [[ ! -e "$configFolder/documents-sync.exclude" ]]; then
-	touch "$configFolder/documents-sync.exclude"
-fi
+appname=$(basename $0)
+
+function usage() {
+    echo "$appname - simply sync your documents"
+    echo ""
+    echo "Usage: $appname [options]"
+    echo "       $appname --up --run"
+    echo "       $appname -u -r"
+    echo "       $appname --down"
+    echo "       $appname -d"
+    echo "       $appname --help"
+    echo ""
+    echo "Options"
+    echo " -u, --up    sync up"
+    echo " -d, --down  sync down"
+    echo " -r, --run   actually sync (if not given dry run is done)"
+    echo " -h, --help  show this help"
+
+    exit 0
+}
 
 # config options
 LFOLDER=""
 RFOLDER=""
 SSH=0
+
+# cli options
+DIRECTION='up'
+DRYRUN=1
+
+# getopts
+while true; do
+    case "$1" in
+        -u | --up ) DIRECTION='up'; shift ;;
+        -d | --down ) DIRECTION='down'; shift ;;
+        -r | --run ) DRYRUN=0; shift ;;
+        -h | --help ) usage; shift ;;
+        -- ) shift; break ;;
+        * ) break ;;
+    esac
+done
 
 # if exists load config file, see documents-sync.cfg.example
 if [[ -e "$configFolder/documents-sync.cfg" ]]; then
@@ -24,14 +56,17 @@ else
 	exit 255
 fi
 
+# exclude
+if [[ ! -e "$configFolder/documents-sync.exclude" ]]; then
+	touch "$configFolder/documents-sync.exclude"
+fi
+
 # checks for empty config vars
 [[ -z "$LFOLDER" ]] && echo "Local folder (LFOLDER) must be configured" && exit 255
 [[ -z "$RFOLDER" ]] && echo "Remote folder (RFOLDER) must be configured" && exit 255
 if [[ $SSH -ne 1 ]]; then
 	SSH=0
 fi
-
-[[ -z "$1" ]] && echo "pass up/down direction of syncing" && exit 255
 
 # check the folders
 if [[ "${LFOLDER: -1}" != "/" ]]; then
@@ -42,20 +77,16 @@ if [[ "${RFOLDER: -1}" != "/" ]]; then
     RFOLDER="$RFOLDER/"
 fi
 
-case "$1" in
+case "$DIRECTION" in
 'up')
 	folders="$LFOLDER $RFOLDER"
 	;;
 'down')
 	folders="$RFOLDER $LFOLDER"
 	;;
-*)
-	echo "only up/down direction is allowed" && exit 255
-	;;
 esac
-shift
 
-if [[ "$1" != "run" ]]; then
+if [[ $DRYRUN -ne 0 ]]; then
 	dry=' --dry-run'
 else
 	dry=''
@@ -66,6 +97,13 @@ if [[ $SSH -eq 1 ]]; then
 else
 	ssh=''
 fi
+
+banner="$appname $DIRECTION"
+if [[ $DRYRUN -ne 0 ]]; then
+    banner="$banner - !DRY RUN!"
+fi
+echo "$banner"
+echo "$(echo $banner | sed 's/./-/g')"
 
 rsync \
 	$dry \
