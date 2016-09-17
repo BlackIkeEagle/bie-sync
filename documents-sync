@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+appname=$(basename $0)
 
 # initialize configuration folder when it is not existing
-configFolder="${XDG_CONFIG_HOME:-$HOME/.config}/documents-sync"
+configFolder="${XDG_CONFIG_HOME:-$HOME/.config}/$appname"
 if [[ ! -d "$configFolder" ]]; then
 	mkdir -p "$configFolder"
 fi
-
-appname=$(basename $0)
 
 function usage() {
     echo "$appname - simply sync your documents"
