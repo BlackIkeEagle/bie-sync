@@ -33,6 +33,15 @@ fi
 
 [[ -z "$1" ]] && echo "pass up/down direction of syncing" && exit 255
 
+# check the folders
+if [[ "${LFOLDER: -1}" != "/" ]]; then
+    LFOLDER="$LFOLDER/"
+fi
+
+if [[ "${RFOLDER: -1}" != "/" ]]; then
+    RFOLDER="$RFOLDER/"
+fi
+
 case "$1" in
 'up')
 	folders="$LFOLDER $RFOLDER"
