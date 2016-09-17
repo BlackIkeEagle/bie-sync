@@ -1,0 +1,6 @@
+*.lock
+*~
+*.bak
+Thumbs.db
+*.~lock*
+.directory
