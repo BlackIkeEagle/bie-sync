@@ -13,7 +13,7 @@ function usage() {
     if [[ -z $return ]]; then
         return=0
     fi
-    echo "$appname - simply sync your documents"
+    echo "$appname - simply sync your folders"
     echo ""
     echo "Usage: $appname [options] profile"
     echo "       $appname --up --run test"
