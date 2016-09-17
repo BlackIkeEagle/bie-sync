@@ -28,7 +28,6 @@ fi
 # checks for empty config vars
 [[ -z "$LFOLDER" ]] && echo "Local folder (LFOLDER) must be configured" && exit 255
 [[ -z "$RFOLDER" ]] && echo "Remote folder (RFOLDER) must be configured" && exit 255
-[[ -z "$DOCUMENTS" ]] && echo "Documents name (DOCUMENTS) must be configured" && exit 255
 if [[ $SSH -ne 1 ]]; then
 	SSH=0
 fi
@@ -37,10 +36,10 @@ fi
 
 case "$1" in
 'up')
-	folders="$LFOLDER/$DOCUMENTS $RFOLDER"
+	folders="$LFOLDER $RFOLDER"
 	;;
 'down')
-	folders="$RFOLDER/$DOCUMENTS $LFOLDER"
+	folders="$RFOLDER $LFOLDER"
 	;;
 *)
 	echo "only up/down direction is allowed" && exit 255
