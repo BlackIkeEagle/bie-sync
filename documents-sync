@@ -64,7 +64,7 @@ rsync \
 	--archive \
 	--modify-window=10 \
 	--update \
-	--delete \
+	--delete-after \
 	--omit-dir-times \
 	--no-owner \
 	--no-group \
