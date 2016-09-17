@@ -120,7 +120,7 @@ else
 	ssh=''
 fi
 
-banner="$appname $PROFILE $DIRECTION"
+banner="$appname '$PROFILE' $DIRECTION"
 if [[ $DRYRUN -ne 0 ]]; then
     banner="$banner - !DRY RUN!"
 fi
