@@ -24,11 +24,12 @@ function usage() {
     echo "       $appname --help"
     echo ""
     echo "Options"
-    echo " -u, --up    sync up"
-    echo " -d, --down  sync down"
-    echo " -r, --run   actually sync (if not given dry run is done)"
-    echo " -l, --list  show the profile configurations"
-    echo " -h, --help  show this help"
+    echo " -u, --up      sync up"
+    echo " -d, --down    sync down"
+    echo " -x, --remove  also run delete"
+    echo " -r, --run     actually sync (if not given dry run is done)"
+    echo " -l, --list    show the profile configurations"
+    echo " -h, --help    show this help"
 
     exit $return
 }
@@ -47,12 +48,14 @@ SSH=0
 # cli options
 DIRECTION='up'
 DRYRUN=1
+DELTE=0
 
 # getopts
 while true; do
     case "$1" in
         -u | --up ) DIRECTION='up'; shift ;;
         -d | --down ) DIRECTION='down'; shift ;;
+        -x | --remove ) DELETE=1; shift ;;
         -r | --run ) DRYRUN=0; shift ;;
         -l | --list ) listProfiles; shift ;;
         -h | --help ) usage; shift ;;
@@ -114,6 +117,12 @@ else
 	dry=''
 fi
 
+if [[ $DELETE -eq 1 ]]; then
+    remove=' --delete-after'
+else
+    remove=''
+fi
+
 if [[ $SSH -eq 1 ]]; then
 	ssh=' -e ssh'
 else
@@ -132,7 +141,7 @@ rsync \
 	--archive \
 	--modify-window=10 \
 	--update \
-	--delete-after \
+	$remove \
 	--omit-dir-times \
 	--no-owner \
 	--no-group \
