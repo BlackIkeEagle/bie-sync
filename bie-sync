@@ -45,10 +45,12 @@ LFOLDER=""
 RFOLDER=""
 SSH=0
 
+PROFILE=''
+
 # cli options
 DIRECTION='up'
 DRYRUN=1
-DELTE=0
+DELETE=0
 
 # getopts
 while true; do
@@ -59,12 +61,12 @@ while true; do
         -r | --run ) DRYRUN=0; shift ;;
         -l | --list ) listProfiles; shift ;;
         -h | --help ) usage; shift ;;
-        -- ) shift; break ;;
-        * ) break ;;
+        * ) if [[ "" == "$PROFILE" ]]; then PROFILE="$1"; fi; shift ;;
     esac
+    if [[ 0 -eq $# ]]; then
+        break;
+    fi
 done
-
-PROFILE="$1"
 
 if [[ -z $PROFILE ]]; then
     echo "error: you should pass a profile";
